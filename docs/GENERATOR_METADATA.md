@@ -20,7 +20,7 @@ responses, tool calls, thinking). It does **not** include token usage.
 Token usage lives in a parallel metadata stream that you poll alongside
 the trajectory steps:
 
-```
+```text
 InitializeCascadePanelState(metadata)
  → StartCascade(metadata, source)          → cascade_id
  → SendUserCascadeMessage(cascade_id, …)
@@ -35,7 +35,7 @@ per cascade session.
 
 ## 2. Request format
 
-```
+```protobuf
 GetCascadeTrajectoryGeneratorMetadataRequest:
   field 1: cascade_id                    (string)
   field 2: generator_metadata_offset     (uint32)
@@ -48,7 +48,7 @@ advances by the number of metadata entries returned each poll.
 
 ## 3. Response format
 
-```
+```protobuf
 GetCascadeTrajectoryGeneratorMetadataResponse:
   field 1: generator_metadata (repeated CortexStepGeneratorMetadata)
 ```
@@ -62,7 +62,7 @@ generation).
 
 ## 4. The token-usage chain
 
-```
+```text
 CortexStepGeneratorMetadata
   └─ field 1: chat_model (oneof "metadata", ChatModelMetadata)
        └─ field 4: usage (ModelUsageStats)
@@ -133,7 +133,7 @@ the most recent context usage. Use it for the live meter.
 The percentage denominator is **not** in the generator metadata. It comes
 from `IntentToolConfig`:
 
-```
+```protobuf
 exa.cortex_pb.IntentToolConfig:
   field 1: intent_model (deprecated)  (enum)
   field 2: max_context_tokens         (uint32)  ← max context window
@@ -142,12 +142,12 @@ exa.cortex_pb.IntentToolConfig:
 
 This is per-model, not per-turn. To compute the percentage shown in the UI:
 
-```
+```text
 percentage = input_tokens / max_context_tokens * 100
 ```
 
 You can discover `max_context_tokens` for each model at runtime via
-`GetUserStatus` → `cascade_model_config_data.client_model_configs[]`,
+`GetCascadeModelConfigs` → `client_model_configs[].max_tokens`,
 as noted in [CASCADE_PROTOCOL.md](CASCADE_PROTOCOL.md) §3.
 
 ---
@@ -164,7 +164,7 @@ styles.
 
 Headers required (same as other Cascade RPCs):
 
-```
+```http
 Content-Type: application/proto
 Connect-Protocol-Version: 1
 x-codeium-csrf-token: {csrf_token}
@@ -173,7 +173,7 @@ Authorization: Bearer {api_key}
 
 URL pattern:
 
-```
+```text
 POST http://127.0.0.1:{port}/exa.language_server_pb.LanguageServerService/GetCascadeTrajectoryGeneratorMetadata
 ```
 
@@ -184,7 +184,7 @@ POST http://127.0.0.1:{port}/exa.language_server_pb.LanguageServerService/GetCas
 A test message ("Hello, what is 2+2?") with an injected system prompt
 returned:
 
-```
+```text
 GeneratorMetadata #1: input_tokens=1719 output_tokens=25
 ```
 
